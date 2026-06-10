@@ -6,6 +6,18 @@ Livestock traceability system with bulk CSV ingestion, event history, and Averag
 
 ---
 
+## ADG — Average Daily Gain (ADPV)
+
+The system's core analytics feature. For a given lot and date range, it computes the **Average Daily Gain (ADG)** per animal: `(last_weight - first_weight) / days_between`, then aggregates across all animals in the lot.
+
+The `GET /lots/{id}/adg` endpoint accepts `from`, `to`, and `min_days` (minimum days between first and last measurement for an animal to be included). Results include per-lot ADG, animal count, and relative performance against the best-performing lot.
+
+The fixture data includes two intentionally low-ADG lots (Lot 4 and Lot 5, ~0.08 kg/day) to make the feature easy to demo and validate against realistic variation.
+
+![ADG dashboard](docs/adpv.png)
+
+---
+
 ## Architecture
 
 ### Transaction ownership
@@ -202,6 +214,7 @@ Event CSVs identify animals by `tag_number`. The service resolves all tags to UU
 
 ---
 
+
 ## Query analysis and known improvement opportunities
 
 ### ADG query (`GET /lots/{id}/adg`)
@@ -224,4 +237,6 @@ The partial index `idx_events_weight_adg (animal_id, occurred_at) WHERE type = '
 3. **`work_mem` tuning.** The Hash Join spills to 4 batches (`Batches: 4`) because the hash table exceeds the default `work_mem`. Raising it to 32–64 MB for this query would keep the hash in memory and cut the sort + hash cost significantly.
 
 ---
+
+
 
